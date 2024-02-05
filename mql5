@@ -1,0 +1,67 @@
+mql5
+//+------------------------------------------------------------------+
+//|                                                     VI Vortex.mq5 |
+//|                        Copyright 2022, Forex Robot Easy Team     |
+//|                                         Developer's site: forexroboteasy.com |
+//+------------------------------------------------------------------+
+#property copyright 'Copyright 2022, Forex Robot Easy Team'
+#property link      'forexroboteasy.com'
+#property version   '1.00'
+
+//--- input parameters
+input int PeriodVI = 14; // Period for VI calculation
+
+//--- indicator buffers
+double VITrendBuffer[]; // VI Trend buffer
+double VILineBuffer[];  // VI- line buffer
+
+//+------------------------------------------------------------------+
+//| Custom indicator initialization function                         |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+    //--- indicator buffers mapping
+    SetIndexBuffer(0, VITrendBuffer);
+    SetIndexBuffer(1, VILineBuffer);
+
+    //--- set indicator line labels
+    SetIndexLabel(0, 'VI Trend');
+    SetIndexLabel(1, 'VI- Line');
+
+    //--- set indicator short name
+    IndicatorSetString(INDICATOR_SHORTNAME, 'VI Vortex');
+
+    return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Custom indicator iteration function                              |
+//+------------------------------------------------------------------+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime& time[],
+                const double& open[],
+                const double& high[],
+                const double& low[],
+                const double& close[],
+                const long& tick_volume[],
+                const long& volume[],
+                const int& spread[])
+{
+    //--- check for bars count
+    if (rates_total < PeriodVI || rates_total <= 0)
+        return(0);
+
+    //--- calculation loop
+    for (int i = prev_calculated; i < rates_total; i++)
+    {
+        //--- calculate VI Trend
+        VITrendBuffer[i] = iMAOnArray(high, 0, PeriodVI, 0, MODE_SMA, i) - iMAOnArray(low, 0, PeriodVI, 0, MODE_SMA, i);
+        
+        //--- calculate VI- Line
+        VILineBuffer[i] = iMAOnArray(VITrendBuffer, 0, PeriodVI, 0, MODE_SMA, i);
+    }
+
+    //--- return value of prev_calculated for next call
+    return(rates_total);
+}
